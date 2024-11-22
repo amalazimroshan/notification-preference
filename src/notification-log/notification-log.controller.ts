@@ -8,6 +8,11 @@ export class NotificationLogController {
     private readonly notificationLogService: NotificationLogService,
   ) {}
 
+  @Get()
+  findAll() {
+    return this.notificationLogService.findAll();
+  }
+
   @Post('send')
   async sendNotification(
     @Body() createNotificationLogDto: CreateNotificationLogDto,

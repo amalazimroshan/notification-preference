@@ -25,11 +25,13 @@ export class NotificationLogService {
     private readonly userPreferenceModel: Model<UserPreferenceDocument>,
   ) {}
 
+  findAll(): Promise<NotificationLog[]> {
+    return this.notificationLogModel.find().exec();
+  }
+
   async validateUserId(userId: string): Promise<boolean> {
     try {
       const userPreference = await this.userPreferenceModel.findOne({ userId });
-      console.log(userPreference);
-
       return !!userPreference;
     } catch (error) {
       console.error(
@@ -45,12 +47,9 @@ export class NotificationLogService {
     const isValidUser = await this.validateUserId(
       createNotificationLogDto.userId,
     );
-    console.log(isValidUser);
-
     if (!isValidUser) {
       throw new BadRequestException(`Invalid userId provided`);
     }
-
     const notificationLog = new this.notificationLogModel(
       createNotificationLogDto,
     );
@@ -63,7 +62,6 @@ export class NotificationLogService {
     if (!logs || logs.length === 0) {
       throw new NotFoundException(`No logs found for user ${userId}`);
     }
-
     return logs;
   }
   async getStats(filters: { startDate?: string; endDate?: string }) {
