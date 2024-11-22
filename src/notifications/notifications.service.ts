@@ -49,7 +49,7 @@ export class NotificationsService {
         .sort({ sentAt: -1 });
 
       const frequency = user.preferences.frequency;
-      if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
+      // if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
 
       const types = ['marketing', 'newsletter', 'updates'];
       const channels = ['email', 'sms', 'push'];
@@ -59,14 +59,17 @@ export class NotificationsService {
           userId: user.userId,
           type: type,
           channel: channel,
-          status: 'sent',
+          status: 'pending',
           sentAt: new Date(),
           metadata: { sim: true },
         }));
       });
 
       await Promise.all(
-        notificationLogs.map((log) => this.notificationLogModel.create(log)),
+        notificationLogs.map(async (log) => {
+          log.status = 'sent'; // update dynamically on notification sent state
+          this.notificationLogModel.create(log);
+        }),
       );
 
       this.logger.log(
