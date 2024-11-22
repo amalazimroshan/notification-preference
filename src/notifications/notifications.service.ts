@@ -54,8 +54,8 @@ export class NotificationsService {
       const types = ['marketing', 'newsletter', 'updates'];
       const channels = ['email', 'sms', 'push'];
 
-      const notificationLogs = types.map((type) => {
-        return channels.map((channel) => ({
+      const notificationLogs = types.flatMap((type) => {
+        return channels.flatMap((channel) => ({
           userId: user.userId,
           type: type,
           channel: channel,
