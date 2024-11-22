@@ -6,6 +6,10 @@ import {
   NotificationLog,
   NotificationLogSchema,
 } from './notification-log.schema';
+import {
+  UserPreference,
+  UserPreferenceSchema,
+} from 'src/user-preference/user-preference.schema';
 
 @Module({
   controllers: [NotificationLogController],
@@ -13,6 +17,7 @@ import {
   imports: [
     MongooseModule.forFeature([
       { name: NotificationLog.name, schema: NotificationLogSchema },
+      { name: UserPreference.name, schema: UserPreferenceSchema },
     ]),
   ],
 })

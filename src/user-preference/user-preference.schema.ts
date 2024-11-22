@@ -39,7 +39,7 @@ class Preferences {
 
 @Schema()
 export class UserPreference {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   userId: string;
 
   @Prop({ required: true, unique: true })

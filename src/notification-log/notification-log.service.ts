@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateNotificationLogDto } from './dto/create-notification-log.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import {
@@ -6,17 +10,47 @@ import {
   NotificationLogDocument,
 } from './notification-log.schema';
 import { Model } from 'mongoose';
+import {
+  UserPreference,
+  UserPreferenceDocument,
+} from 'src/user-preference/user-preference.schema';
 
 @Injectable()
 export class NotificationLogService {
   constructor(
     @InjectModel(NotificationLog.name)
     private readonly notificationLogModel: Model<NotificationLogDocument>,
+
+    @InjectModel(UserPreference.name)
+    private readonly userPreferenceModel: Model<UserPreferenceDocument>,
   ) {}
 
-  create(
+  async validateUserId(userId: string): Promise<boolean> {
+    try {
+      const userPreference = await this.userPreferenceModel.findOne({ userId });
+      console.log(userPreference);
+
+      return !!userPreference;
+    } catch (error) {
+      console.error(
+        `user with id:${userId} is not found in the database: ${error}`,
+      );
+      return false;
+    }
+  }
+
+  async create(
     createNotificationLogDto: CreateNotificationLogDto,
   ): Promise<NotificationLog> {
+    const isValidUser = await this.validateUserId(
+      createNotificationLogDto.userId,
+    );
+    console.log(isValidUser);
+
+    if (!isValidUser) {
+      throw new BadRequestException(`Invalid userId provided`);
+    }
+
     const notificationLog = new this.notificationLogModel(
       createNotificationLogDto,
     );

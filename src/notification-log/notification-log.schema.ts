@@ -24,7 +24,7 @@ export enum NotificationStatus {
 @Schema({ timestamps: true })
 export class NotificationLog {
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.String,
     ref: 'UserPreference',
     required: true,
   })
