@@ -9,6 +9,7 @@ import {
   UserPreference,
   UserPreferenceDocument,
 } from 'src/user-preference/user-preference.schema';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class NotificationsService {
@@ -48,7 +49,7 @@ export class NotificationsService {
         .sort({ sentAt: -1 });
 
       const frequency = user.preferences.frequency;
-      if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
+      //   if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
 
       const types = ['marketing', 'newsletter', 'updates'];
       const channels = ['email', 'sms', 'push'];
@@ -76,5 +77,11 @@ export class NotificationsService {
     }
 
     return 'manual send notification done successfully';
+  }
+
+  @Cron('45 * * * * *')
+  async handleNotifications() {
+    this.logger.debug('Sending notifications to world');
+    this.sendNotificaions();
   }
 }
