@@ -64,7 +64,7 @@ export class NotificationsService {
         .sort({ sentAt: -1 });
 
       const frequency = user.preferences.frequency;
-      // if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
+      if (lastSent && lastSent.sentAt > frequencyMapping[frequency]) continue;
 
       const types = ['marketing', 'newsletter', 'updates'];
       const channels = ['email', 'sms', 'push'];
