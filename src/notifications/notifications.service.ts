@@ -26,6 +26,21 @@ export class NotificationsService {
   });
 
   async sendNotificaions() {
+    const response = {
+      success: {
+        total: 0,
+        sms: 0,
+        email: 0,
+        push: 0,
+      },
+      failed: {
+        total: 0,
+        sms: 0,
+        email: 0,
+        push: 0,
+      },
+    };
+
     const now = new Date();
     const frequencyMapping = {
       daily: new Date(now.setDate(now.getDate() - 1)),
@@ -54,32 +69,55 @@ export class NotificationsService {
       const types = ['marketing', 'newsletter', 'updates'];
       const channels = ['email', 'sms', 'push'];
 
-      const notificationLogs = types.flatMap((type) => {
-        return channels.flatMap((channel) => ({
-          userId: user.userId,
-          type: type,
-          channel: channel,
-          status: 'pending',
-          sentAt: new Date(),
-          metadata: { sim: true },
-        }));
-      });
+      // create valid candidates from the list
+      const notificationLogs = types
+        .flatMap((type) => {
+          if (user.preferences[type]) {
+            return channels
+              .flatMap((channel) => {
+                if (user.preferences.channels[channel]) {
+                  return {
+                    userId: user.userId,
+                    type: type,
+                    channel: channel,
+                    status: 'pending',
+                    sentAt: new Date(),
+                    metadata: { sim: true },
+                  };
+                }
+              })
+              .filter(Boolean);
+          }
+        })
+        .filter(Boolean);
 
-      await Promise.all(
-        notificationLogs.map(async (log) => {
-          log.status = 'sent'; // update dynamically on notification sent state
-          this.notificationLogModel.create(log);
-        }),
-      );
-
-      this.logger.log(
-        `Sending ${frequency} notification to ${user.email} for preferences: ${JSON.stringify(
-          user.preferences,
-        )} `,
-      );
+      try {
+        await Promise.all(
+          notificationLogs.map(async (log) => {
+            try {
+              log.status = 'sent'; // update dynamically on notification sent state
+              await this.notificationLogModel.create(log);
+              response.success[log.channel]++;
+              response.success.total++;
+            } catch (error) {
+              this.logger.warn(
+                `error in senting notification to ${user.userId} on channel ${log.channel} error:${error}`,
+              );
+              response.failed[log.channel]++;
+              response.failed.total++;
+            }
+          }),
+        );
+        this.logger.log(
+          `Sending ${frequency} notification to ${user.email} for preferences: ${JSON.stringify(
+            user.preferences,
+          )} `,
+        );
+      } catch (error) {
+        this.logger.warn(`sent notification to ${user.email}: error:${error} `);
+      }
     }
-
-    return 'manual send notification done successfully';
+    return response;
   }
 
   @Cron('45 * * * * *')
